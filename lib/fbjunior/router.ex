@@ -23,8 +23,8 @@ defmodule Router do
                     {:ok, domain} = Utils.domain(link)
                     String.downcase(to_string(domain))
                   end
-        Utils.set_domains(domains, now)
-        {201, %{status: "ok"}}
+        status = Utils.set_domains(domains, now)
+        {201, %{status: status}}
       _ ->
         body = %{status: "Bad Request"}
         {400, body}
@@ -38,8 +38,10 @@ defmodule Router do
       %{"from" => from0, "to" => to0} ->
         {from, _} = Integer.parse(from0)
         {to, _} = Integer.parse(to0)
-        domains = Utils.get_domains(from, to)
-        body = %{domains: domains, status: "ok"}
+        body = case Utils.get_domains(from, to) do
+                domains when is_list(domains) -> %{domains: domains, status: "ok"}
+                _ -> %{domains: [], status: "redis error"}
+        end
         {200, body}
       _ ->
         body = %{status: "Bad Request"}

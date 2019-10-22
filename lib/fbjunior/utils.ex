@@ -21,14 +21,17 @@ defmodule Utils do
       ["SADD", to_string(time) | domains],
       ["ZADD", @keys, time, to_string(time)]
     ]
-    {:ok, _} = Redix.pipeline(:redix, commands)
-    domains
+    case Redix.pipeline(:redix, commands) do
+      {:ok, _} -> "ok"
+            _  -> "redis error"
+    end
   end
 
   def get_domains(from, to) do
-    {:ok, keys} = Redix.command(:redix, ["ZRANGEBYSCORE", @keys, from, to])
-    {:ok, domains} = Redix.command(:redix, ["SUNION" | keys])
-    domains
+    with  {:ok, keys} <- Redix.command(:redix, ["ZRANGEBYSCORE", @keys, from, to]),
+       {:ok, domains} <- Redix.command(:redix, ["SUNION" | keys]) do
+       domains
+    end
   end
 
 end
