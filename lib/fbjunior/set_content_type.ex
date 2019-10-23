@@ -1,4 +1,4 @@
-defmodule Plug.Header do
+defmodule Plug.SetContentType do
   import Plug.Conn
   def init([]), do: false
   def call(conn, _opts) do

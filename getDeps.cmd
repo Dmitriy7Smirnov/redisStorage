@@ -1,3 +1,3 @@
 @echo off
-iex -S mix
+mix deps.get
 if errorlevel 1 pause

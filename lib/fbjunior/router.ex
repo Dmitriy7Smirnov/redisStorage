@@ -4,18 +4,17 @@ defmodule Router do
   require Logger
 
   plug Plug.Parsers,
-    parsers: [:urlencoded, :multipart, :json],
+    parsers: [:json],
     pass: ["*/*"],
     json_decoder: Jason
 
-  plug Plug.Header
+  plug Plug.SetContentType
   plug(:match)
   plug(:dispatch)
 
 
   # Submit links
   post "/visited_links" do
-    #IO.inspect conn.body_params
     {status, body} = case conn.body_params do
       %{"links" => links} when is_list(links) ->
         now = Utils.timestamp()
@@ -26,10 +25,9 @@ defmodule Router do
         status = Utils.set_domains(domains, now)
         {201, %{status: status}}
       _ ->
-        body = %{status: "Bad Request"}
-        {400, body}
+        {400, %{status: "Bad Request"}}
     end
-    conn.send_resp(status, Jason.encode!(body))
+    send_resp(conn, status, Jason.encode!(body))
   end
 
   # Get unique domains
@@ -44,17 +42,14 @@ defmodule Router do
         end
         {200, body}
       _ ->
-        body = %{status: "Bad Request"}
-        {400, body}
+        {400, %{status: "Bad Request"}}
       end
-      conn.send_resp(status, Jason.encode!(body))
+      send_resp(conn, status, Jason.encode!(body))
   end
 
   # Catch-up
   match _ do
-    status = 404
-    body = %{status: "Not found"}
-    conn.send_resp(status, Jason.encode!(body))
+    send_resp(conn, 404, Jason.encode!(%{status: "Not found"}))
   end
 end
 
